@@ -1,0 +1,208 @@
+<body>
+    <div class="container">
+        <h1>📊 Hava Durumu İstasyonu</h1>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">🌡️ Sıcaklık</div>
+                {% if let Some(temp) = data.temperature %}
+                <div class="stat-value">{{ self::round(temp.get::<degree_celsius>(), 1) }}<span class="stat-unit">°C</span></div>
+                {% else %}
+                <div class="stat-unavailable">-</div>
+                {% endif %}
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">💧 Nem Oranı</div>
+                {% if let Some(humidity) = data.humidity %}
+                <div class="stat-value"><span class="stat-unit">%</span>{{ humidity.get::<percent>() }}</div>
+                {% else %}
+                <div class="stat-unavailable">-</div>
+                {% endif %}
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">💨 Rüzgar Hızı</div>
+                {% if let Some(speed) = data.wind_speed_1_min %}
+                <div class="stat-value">{{ self::round(speed.get::<meter_per_second>(), 2) }}<span class="stat-unit">m/s</span></div>
+                {% else %}
+                <div class="stat-unavailable">-</div>
+                {% endif %}
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">📈 Basınç</div>
+                {% if let Some(pressure) = data.air_pressure %}
+                <div class="stat-value">{{ self::round(pressure.get::<hectopascal>(), 0) }}<span class="stat-unit">hPa</span></div>
+                {% else %}
+                <div class="stat-unavailable">-</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2 class="section-title">📋 Detaylı Veriler</h2>
+            <div class="data-row">
+                <div class="data-item">
+                    <div class="data-label">🌡️ Sıcaklık</div>
+                    {% if let Some(temp) = data.temperature %}
+                    <div class="data-value">{{ self::round(temp.get::<degree_celsius>(), 2) }} °C</div>
+                    {% else %}
+                    <div class="data-value unavailable">Veri yok</div>
+                    {% endif %}
+                </div>
+                <div class="data-item">
+                    <div class="data-label">💧 Nem Oranı</div>
+                    {% if let Some(humidity) = data.humidity %}
+                    <div class="data-value">%{{ humidity.get::<percent>() }}</div>
+                    {% else %}
+                    <div class="data-value unavailable">Veri yok</div>
+                    {% endif %}
+                </div>
+                <div class="data-item">
+                    <div class="data-label">📈 Hava Basıncı</div>
+                    {% if let Some(air_pressure) = data.air_pressure %}
+                    <div class="data-value">{{ self::round(air_pressure.get::<hectopascal>(), 1) }} hPa</div>
+                    {% else %}
+                    <div class="data-value unavailable">Veri yok</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="data-row">
+                <div class="data-item">
+                    <div class="data-label">💨 Rüzgar Hızı (1 dakika)</div>
+                    {% if let Some(wind_speed) = data.wind_speed_1_min %}
+                    <div class="data-value">{{ self::round(wind_speed.get::<meter_per_second>(), 2) }} m/s</div>
+                    {% else %}
+                    <div class="data-value unavailable">Veri yok</div>
+                    {% endif %}
+                </div>
+                <div class="data-item">
+                    <div class="data-label">🌪️ Max Rüzgar Hızı (5 dakika)</div>
+                    {% if let Some(wind_speed) = data.max_wind_speed_5_min %}
+                    <div class="data-value">{{ self::round(wind_speed.get::<meter_per_second>(), 2) }} m/s</div>
+                    {% else %}
+                    <div class="data-value unavailable">Veri yok</div>
+                    {% endif %}
+                </div>
+                <div class="data-item">
+                    <div class="data-label">🧭 Rüzgar Yönü</div>
+                    {% if let Some(wind_direction) = data.wind_direction %}
+                    <div class="data-value">{{ wind_direction.value }}°</div>
+                    {% else %}
+                    <div class="data-value unavailable">Veri yok</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="data-row">
+                <div class="data-item">
+                    <div class="data-label">🌧️ Yağmur (1 saat)</div>
+                    {% if let Some(rainfall) = data.rainfall_1_hour %}
+                    <div class="data-value">{{ self::round(rainfall.get::<millimeter_of_water>(), 2) }} mm</div>
+                    {% else %}
+                    <div class="data-value unavailable">Veri yok</div>
+                    {% endif %}
+                </div>
+                <div class="data-item">
+                    <div class="data-label">🌧️ Yağmur (1 gün)</div>
+                    {% if let Some(rainfall) = data.rainfall_1_day %}
+                    <div class="data-value">{{ self::round(rainfall.get::<millimeter_of_water>(), 2) }} mm</div>
+                    {% else %}
+                    <div class="data-value unavailable">Veri yok</div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        async function reloadData() {
+            try {
+                const response = await fetch({{ endpoint }});
+                const newData = await response.json();
+                updatePage(newData);
+            } catch (error) {
+                console.error("Failed to reload data:", error);
+            }
+        }
+
+        function updatePage(newData) {
+            const tempCards = document.querySelectorAll(".stat-card");
+            const dataItems = document.querySelectorAll(".data-item");
+
+            if (newData.temperature !== null) {
+                tempCards[0].innerHTML = `
+                    <div class="stat-label">🌡️ Sıcaklık</div>
+                    <div class="stat-value">${newData.temperature.toFixed(1)} <span class="stat-unit">°C</span></div>
+                `;
+                dataItems[0].innerHTML = `
+                    <div class="data-label">🌡️ Sıcaklık</div>
+                    <div class="data-value">${newData.temperature.toFixed(2)} °C</div>
+                `;
+            }
+
+            if (newData.humidity !== null) {
+                tempCards[1].innerHTML = `
+                    <div class="stat-label">💧 Nem Oranı</div>
+                    <div class="stat-value">${newData.humidity} <span class="stat-unit">%</span></div>
+                `;
+                dataItems[1].innerHTML = `
+                    <div class="data-label">💧 Nem Oranı</div>
+                    <div class="data-value">${newData.humidity} %</div>
+                `;
+            }
+
+            if (newData.wind_speed_1_min !== null) {
+                tempCards[2].innerHTML = `
+                    <div class="stat-label">💨 Rüzgar Hızı</div>
+                    <div class="stat-value">${newData.wind_speed_1_min.toFixed(1)} <span class="stat-unit">m/s</span></div>
+                `;
+                dataItems[3].innerHTML = `
+                    <div class="data-label">💨 Rüzgar Hızı (1 dakika)</div>
+                    <div class="data-value">${newData.wind_speed_1_min.toFixed(2)} m/s</div>
+                `;
+            }
+
+            if (newData.air_pressure !== null) {
+                tempCards[3].innerHTML = `
+                    <div class="stat-label">📈 Basınç</div>
+                    <div class="stat-value">${newData.air_pressure.toFixed(0)} <span class="stat-unit">hPa</span></div>
+                `;
+                dataItems[2].innerHTML = `
+                    <div class="data-label">📈 Hava Basıncı</div>
+                    <div class="data-value">${newData.air_pressure.toFixed(1)} hPa</div>
+                `;
+            }
+
+            if (newData.max_wind_speed_5_min !== null) {
+                dataItems[4].innerHTML = `
+                    <div class="data-label">🌪️ Max Rüzgar Hızı (5 dakika)</div>
+                    <div class="data-value">${newData.max_wind_speed_5_min.toFixed(2)} m/s</div>
+                `;
+            }
+
+            if (newData.wind_direction !== null) {
+                dataItems[5].innerHTML = `
+                    <div class="data-label">🧭 Rüzgar Yönü</div>
+                    <div class="data-value">${newData.wind_direction}°</div>
+                `;
+            }
+
+            if (newData.rainfall_1_hour !== null) {
+                dataItems[6].innerHTML = `
+                    <div class="data-label">🌧️ Yağmur (1 saat)</div>
+                    <div class="data-value">${newData.rainfall_1_hour.toFixed(2)} mm</div>
+                `;
+            }
+
+            if (newData.rainfall_1_day !== null) {
+                dataItems[7].innerHTML = `
+                    <div class="data-label">🌧️ Yağmur (1 gün)</div>
+                    <div class="data-value">${newData.rainfall_1_day.toFixed(2)} mm</div>
+                `;
+            }
+        }
+
+        setInterval(reloadData, 5000);
+    </script>
+</body>

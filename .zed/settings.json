@@ -1,0 +1,15 @@
+{
+    "lsp": {
+        "rust-analyzer": {
+            "initialization_options": {
+                "cargo": {
+                    "allTargets": false,
+                    "target": "thumbv6m-none-eabi",
+                    "extraEnv": {
+                        "ARM_GNU_TOOLCHAIN_INCLUDE": "C:/Program Files (x86)/Arm GNU Toolchain/13.3 rel1/arm-none-eabi/include",
+                    },
+                },
+            },
+        },
+    },
+}
