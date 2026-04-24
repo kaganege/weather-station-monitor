@@ -87,7 +87,9 @@ impl TryFrom<RawData> for Data {
             rainfall_1_day: parse_field(rainfall_1_day)?
                 .map(|val| val as f32 * 100.0) // 0.01 inch to inch
                 .map(PressureF32::new::<inch_of_water>),
-            humidity: parse_field(humidity)?.map(RatioU8::new::<percent>),
+            humidity: parse_field(humidity)?
+                .map(|val| if val == 0 { 100 } else { val }) // 00 means 100%
+                .map(RatioU8::new::<percent>),
             air_pressure: parse_field(air_pressure)?
                 .map(|val| val as f32 * 10.0) // 0.1 hPa to hPa
                 .map(PressureF32::new::<hectopascal>),
