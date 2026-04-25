@@ -13,6 +13,7 @@ use uom::si::{
 use crate::station;
 
 #[derive(Debug, Clone, Copy, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 struct SerializedData {
     /// Wind direction in degrees
     pub wind_direction: Option<u16>,

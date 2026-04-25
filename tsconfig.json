@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "module": "CommonJS",
+        "allowJs": true,
+        "checkJs": true,
+        "noEmit": true,
+    },
+    "include": ["templates/**/*"],
+}
