@@ -78,7 +78,6 @@ async fn main(spawner: Spawner) {
             unsafe {
                 watchdog.lock_mut(|wd| {
                     wd.set_scratch(0, 0); // Clear panic flag
-                    wd.set_scratch(1, 1); // Clear first boot flag
 
                     // Clear the watchdog reset reason
                     embassy_rp::pac::WATCHDOG.reason().modify(|r| {

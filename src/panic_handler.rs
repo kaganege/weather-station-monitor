@@ -1,6 +1,5 @@
 use core::panic::PanicInfo;
 
-// use cm_backtrace::Backtrace;
 use embassy_time::Duration;
 
 use crate::watchdog::WATCHDOG;
