@@ -1,3 +1,5 @@
+const ENDPOINT = "{{ endpoint }}";
+
 async function reloadData() {
     try {
         const response = await fetch(ENDPOINT);

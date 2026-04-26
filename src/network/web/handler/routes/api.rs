@@ -16,7 +16,7 @@ use crate::station;
 #[serde(rename_all = "camelCase")]
 struct SerializedData {
     /// Wind direction in degrees
-    pub wind_direction: Option<u16>,
+    pub wind_direction: Option<f32>,
     /// Wind speed over the last 1 minute in m/s
     pub wind_speed_1_min: Option<f32>,
     /// Max wind speed over the last 5 minutes in m/s
@@ -44,7 +44,7 @@ impl From<station::Data> for SerializedData {
             temperature: data.temperature.map(|v| v.get::<degree_celsius>()),
             rainfall_1_hour: data.rainfall_1_hour.map(|v| v.get::<millimeter_of_water>()),
             rainfall_1_day: data.rainfall_1_day.map(|v| v.get::<millimeter_of_water>()),
-            humidity: data.humidity.map(|v| v.get::<percent>()),
+            humidity: data.humidity.map(|v| v.get::<percent>() as u8),
             air_pressure: data.air_pressure.map(|v| v.get::<hectopascal>()),
         }
     }

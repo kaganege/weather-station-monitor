@@ -3,19 +3,11 @@ use const_default::ConstDefault;
 use num_traits::Zero;
 use uom::si::{
     angle::degree,
+    f32::{Angle, Pressure, Ratio, ThermodynamicTemperature, Velocity},
     pressure::{hectopascal, inch_of_water},
     ratio::percent,
     thermodynamic_temperature::degree_fahrenheit,
     velocity::mile_per_hour,
-};
-
-pub use uom::si::{
-    f32::{
-        Pressure as PressureF32, ThermodynamicTemperature as ThermodynamicTemperatureF32,
-        Velocity as VelocityF32,
-    },
-    u8::Ratio as RatioU8,
-    u16::Angle as AngleU16,
 };
 
 use crate::station::raw::RawField;
@@ -40,21 +32,21 @@ pub enum ParseError {
 #[derive(Debug, Clone, Copy, Default, ConstDefault)]
 pub struct Data {
     /// Wind direction
-    pub wind_direction: Option<AngleU16>,
+    pub wind_direction: Option<Angle>,
     /// Wind speed over the last 1 minute
-    pub wind_speed_1_min: Option<VelocityF32>,
+    pub wind_speed_1_min: Option<Velocity>,
     /// Max wind speed over the last 5 minutes
-    pub max_wind_speed_5_min: Option<VelocityF32>,
+    pub max_wind_speed_5_min: Option<Velocity>,
     /// Temperature
-    pub temperature: Option<ThermodynamicTemperatureF32>,
+    pub temperature: Option<ThermodynamicTemperature>,
     /// Rainfall over the last hour
-    pub rainfall_1_hour: Option<PressureF32>,
+    pub rainfall_1_hour: Option<Pressure>,
     /// Rainfall over the last 24 hours
-    pub rainfall_1_day: Option<PressureF32>,
+    pub rainfall_1_day: Option<Pressure>,
     /// Relative humidity
-    pub humidity: Option<RatioU8>,
+    pub humidity: Option<Ratio>,
     /// Air pressure
-    pub air_pressure: Option<PressureF32>,
+    pub air_pressure: Option<Pressure>,
 }
 
 impl TryFrom<RawData> for Data {
@@ -71,28 +63,30 @@ impl TryFrom<RawData> for Data {
         let air_pressure = RawAirPressure::try_from(raw.air_pressure)?;
 
         Ok(Self {
-            wind_direction: parse_field(wind_direction)?.map(AngleU16::new::<degree>),
+            wind_direction: parse_field(wind_direction)?
+                .map(|val| val as f32)
+                .map(Angle::new::<degree>),
             wind_speed_1_min: parse_field(wind_speed_1_min)?
                 .map(|val| val as f32 * 10.0) // 0.1 mph to mph
-                .map(VelocityF32::new::<mile_per_hour>),
+                .map(Velocity::new::<mile_per_hour>),
             max_wind_speed_5_min: parse_field(max_wind_speed_5_min)?
                 .map(|val| val as f32 * 10.0) // 0.1 mph to mph
-                .map(VelocityF32::new::<mile_per_hour>),
+                .map(Velocity::new::<mile_per_hour>),
             temperature: parse_field(temperature)?
                 .map(|val| val as f32)
-                .map(ThermodynamicTemperatureF32::new::<degree_fahrenheit>),
+                .map(ThermodynamicTemperature::new::<degree_fahrenheit>),
             rainfall_1_hour: parse_field(rainfall_1_hour)?
                 .map(|val| val as f32 * 100.0) // 0.01 inch to inch
-                .map(PressureF32::new::<inch_of_water>),
+                .map(Pressure::new::<inch_of_water>),
             rainfall_1_day: parse_field(rainfall_1_day)?
                 .map(|val| val as f32 * 100.0) // 0.01 inch to inch
-                .map(PressureF32::new::<inch_of_water>),
+                .map(Pressure::new::<inch_of_water>),
             humidity: parse_field(humidity)?
-                .map(|val| if val == 0 { 100 } else { val }) // 00 means 100%
-                .map(RatioU8::new::<percent>),
+                .map(|val| if val == 0 { 100.0 } else { val as f32 }) // 00 means 100%
+                .map(Ratio::new::<percent>),
             air_pressure: parse_field(air_pressure)?
                 .map(|val| val as f32 * 10.0) // 0.1 hPa to hPa
-                .map(PressureF32::new::<hectopascal>),
+                .map(Pressure::new::<hectopascal>),
         })
     }
 }

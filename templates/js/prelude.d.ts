@@ -9,5 +9,3 @@ declare interface Data {
     humidity: number | null;
     airPressure: number | null;
 }
-
-declare const ENDPOINT: string;

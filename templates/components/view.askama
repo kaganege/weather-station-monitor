@@ -116,8 +116,6 @@
     </div>
 
     <script>
-        const ENDPOINT = {{ endpoint }};
-
         {% include "js/script.js" %}
     </script>
 </body>

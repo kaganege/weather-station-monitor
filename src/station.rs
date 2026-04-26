@@ -7,6 +7,7 @@ use embassy_sync::{
 use embassy_time::Timer;
 use uom::si::{
     angle::degree,
+    f32::{Angle, Pressure, Ratio, ThermodynamicTemperature, Velocity},
     pressure::{hectopascal, millimeter_of_water},
     ratio::percent,
     thermodynamic_temperature::degree_celsius,
@@ -44,24 +45,24 @@ pub fn read_data<'a>()
 
 pub fn random_data() -> Data {
     Data {
-        wind_direction: random_option(|| AngleU16::new::<degree>(random())),
-        wind_speed_1_min: random_option(|| {
-            VelocityF32::new::<meter_per_second>(random::<u8>() as f32)
-        }),
+        wind_direction: random_option(|| Angle::new::<degree>((random::<u16>() % 360) as f32)),
+        wind_speed_1_min: random_option(
+            || Velocity::new::<meter_per_second>(random::<u8>() as f32),
+        ),
         max_wind_speed_5_min: random_option(|| {
-            VelocityF32::new::<meter_per_second>(random::<u8>() as f32)
+            Velocity::new::<meter_per_second>(random::<u8>() as f32)
         }),
         temperature: random_option(|| {
-            ThermodynamicTemperatureF32::new::<degree_celsius>(60.0 - random_f32() * 75.0)
+            ThermodynamicTemperature::new::<degree_celsius>(60.0 - random_f32() * 75.0)
         }),
         rainfall_1_hour: random_option(|| {
-            PressureF32::new::<millimeter_of_water>(random::<u8>() as f32)
+            Pressure::new::<millimeter_of_water>(random::<u8>() as f32)
         }),
         rainfall_1_day: random_option(|| {
-            PressureF32::new::<millimeter_of_water>(random::<u8>() as f32)
+            Pressure::new::<millimeter_of_water>(random::<u8>() as f32)
         }),
-        humidity: random_option(|| RatioU8::new::<percent>(random::<u8>() % 100)),
-        air_pressure: random_option(|| PressureF32::new::<hectopascal>(random_f32() * 1020.0)),
+        humidity: random_option(|| Ratio::new::<percent>((random::<u8>() % 100) as f32)),
+        air_pressure: random_option(|| Pressure::new::<hectopascal>(random_f32() * 1020.0)),
     }
 }
 

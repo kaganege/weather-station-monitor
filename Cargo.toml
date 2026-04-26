@@ -9,8 +9,8 @@ colorize = []
 
 [dependencies]
 askama = { version = "0.15.6", default-features = false, features = [
-    "config",
     "derive",
+    "config",
 ] }
 atoi = { version = "2.0.0", default-features = false }
 const-default = { version = "1.0.0", default-features = false, features = [
@@ -74,12 +74,11 @@ portable-atomic = { version = "1.13.1", default-features = false, features = [
 serde = { version = "1.0.228", default-features = false, features = ["derive"] }
 static_cell = "2.1.1"
 thiserror = { version = "2.0.18", default-features = false }
-uom = { version = "0.38.0", default-features = false, features = [
-    "si",
-    "f32",
-    "u8",
-    "u16",
-] }
+uom = { version = "0.38.0", default-features = false, features = ["si", "f32"] }
+
+[build-dependencies]
+minify-html = "0.18.1"
+walkdir = "2.5.0"
 
 [profile.dev]
 panic = "abort"
@@ -90,3 +89,4 @@ opt-level = "s"
 debug = true
 panic = "abort"
 opt-level = 3
+lto = true
