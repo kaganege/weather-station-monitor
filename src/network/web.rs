@@ -52,10 +52,9 @@ async fn run_server(stack: Stack<'static>) -> ! {
             info!("Listening on http://{GATEWAY_ADDR}:{HTTP_PORT}");
         }
 
-        let _ = server
-            .run(None, &mut bound_socket, HttpHandler)
-            .await
-            .inspect_err(|e| warn!("HTTP server error: {e}"));
+        if let Err(e) = server.run(None, &mut bound_socket, HttpHandler).await {
+            warn!("HTTP server error: {e}");
+        }
 
         Timer::after_secs(1).await;
     }

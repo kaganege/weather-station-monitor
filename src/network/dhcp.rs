@@ -47,14 +47,16 @@ async fn run_dhcp(stack: Stack<'static>) {
         .unwrap();
 
     loop {
-        let _ = io::server::run(
+        if let Err(e) = io::server::run(
             &mut Server::new_with_et(GATEWAY_ADDR),
             &ServerOptions::new(GATEWAY_ADDR, Some(&mut gw_buf)),
             &mut bound_socket,
             &mut buf,
         )
         .await
-        .inspect_err(|e| warn!("DHCP server error: {e}"));
+        {
+            warn!("DHCP server error: {e}")
+        }
 
         Timer::after_millis(500).await;
     }

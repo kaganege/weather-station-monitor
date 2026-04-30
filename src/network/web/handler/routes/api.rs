@@ -3,20 +3,19 @@ use edge_nal::TcpSplit;
 use embedded_io_async::{Read, Write};
 use picoserve::response::{Json, sse::EventData};
 use uom::si::{
-    angle::degree,
     pressure::{hectopascal, millimeter_of_water},
     ratio::percent,
     thermodynamic_temperature::degree_celsius,
     velocity::meter_per_second,
 };
 
-use crate::station;
+use crate::station::{self, WindDirection};
 
 #[derive(Debug, Clone, Copy, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 struct SerializedData {
-    /// Wind direction in degrees
-    pub wind_direction: Option<f32>,
+    /// Wind direction
+    pub wind_direction: Option<WindDirection>,
     /// Wind speed over the last 1 minute in m/s
     pub wind_speed_1_min: Option<f32>,
     /// Max wind speed over the last 5 minutes in m/s
@@ -36,7 +35,7 @@ struct SerializedData {
 impl From<station::Data> for SerializedData {
     fn from(data: station::Data) -> Self {
         Self {
-            wind_direction: data.wind_direction.map(|v| v.get::<degree>()),
+            wind_direction: data.wind_direction,
             wind_speed_1_min: data.wind_speed_1_min.map(|v| v.get::<meter_per_second>()),
             max_wind_speed_5_min: data
                 .max_wind_speed_5_min
@@ -44,6 +43,7 @@ impl From<station::Data> for SerializedData {
             temperature: data.temperature.map(|v| v.get::<degree_celsius>()),
             rainfall_1_hour: data.rainfall_1_hour.map(|v| v.get::<millimeter_of_water>()),
             rainfall_1_day: data.rainfall_1_day.map(|v| v.get::<millimeter_of_water>()),
+            #[expect(clippy::cast_sign_loss, reason = "The humidity is clamped to 0-100%")]
             humidity: data.humidity.map(|v| v.get::<percent>() as u8),
             air_pressure: data.air_pressure.map(|v| v.get::<hectopascal>()),
         }

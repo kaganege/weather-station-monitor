@@ -13,6 +13,19 @@ use uom::si::{
 
 use crate::station;
 
+fn wind_direction_text(wind_direction: station::WindDirection) -> &'static str {
+    match wind_direction {
+        station::WindDirection::North => "Kuzey",
+        station::WindDirection::NorthEast => "Kuzey Doğu",
+        station::WindDirection::East => "Doğu",
+        station::WindDirection::SouthEast => "Güney Doğu",
+        station::WindDirection::South => "Güney",
+        station::WindDirection::SouthWest => "Güney Batı",
+        station::WindDirection::West => "Batı",
+        station::WindDirection::NorthWest => "Kuzey Batı",
+    }
+}
+
 fn round(value: f32, precision: u32) -> f32 {
     let multiplier = 10_f32.powi(precision as i32);
     (value * multiplier).round() / multiplier

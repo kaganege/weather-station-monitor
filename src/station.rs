@@ -5,9 +5,9 @@ use embassy_sync::{
     rwlock::{RwLock, RwLockReadGuard},
 };
 use embassy_time::Timer;
+use num_traits::float::FloatCore;
 use uom::si::{
-    angle::degree,
-    f32::{Angle, Pressure, Ratio, ThermodynamicTemperature, Velocity},
+    f32::{Pressure, Ratio, ThermodynamicTemperature, Velocity},
     pressure::{hectopascal, millimeter_of_water},
     ratio::percent,
     thermodynamic_temperature::degree_celsius,
@@ -45,7 +45,19 @@ pub fn read_data<'a>()
 
 pub fn random_data() -> Data {
     Data {
-        wind_direction: random_option(|| Angle::new::<degree>((random::<u16>() % 360) as f32)),
+        #[expect(clippy::cast_sign_loss, reason = "random_f32() is always positive")]
+        wind_direction: random_option(|| match (random_f32() * 7.0).round() as u8 {
+            0 => data::WindDirection::North,
+            1 => data::WindDirection::NorthEast,
+            2 => data::WindDirection::East,
+            3 => data::WindDirection::SouthEast,
+            4 => data::WindDirection::South,
+            5 => data::WindDirection::SouthWest,
+            6 => data::WindDirection::West,
+            7 => data::WindDirection::NorthWest,
+            // SAFETY: random_f32() * 7.0 is in [0, 7], so match arms cover all possible cases
+            _ => unsafe { core::hint::unreachable_unchecked() },
+        }),
         wind_speed_1_min: random_option(
             || Velocity::new::<meter_per_second>(random::<u8>() as f32),
         ),
@@ -90,5 +102,7 @@ async fn read_task(mut controller: StationController<'static>) -> ! {
         *CACHE.write().await = data;
 
         BLINK_SIGNAL.signal(());
+
+        Timer::after_millis(500).await;
     }
 }

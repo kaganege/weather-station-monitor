@@ -41,6 +41,7 @@ bind_interrupts! {
 
 #[embassy_rp::interrupt]
 unsafe fn SWI_IRQ_0() {
+    // SAFETY: This function is an interrupt handler, so it is safe to call.
     unsafe { CORE_EXECUTOR.on_interrupt() }
 }
 
@@ -64,9 +65,10 @@ async fn main(spawner: Spawner) {
     {
         let watchdog = watchdog::WATCHDOG.get().await;
 
-        if let Some(panic_occured) =
-            unsafe { watchdog.lock_mut(|wd| wd.reset_reason().map(|_| wd.get_scratch(0) == 1)) }
-        {
+        if let Some(panic_occured) = unsafe {
+            // SAFETY: Mutex::lock_mut does not called multiple times in the same lock
+            watchdog.lock_mut(|wd| wd.reset_reason().map(|_| wd.get_scratch(0) == 1))
+        } {
             if panic_occured {
                 warn!("The device previously shut down due to a panic");
             } else {
@@ -75,6 +77,7 @@ async fn main(spawner: Spawner) {
                 );
             }
 
+            // SAFETY: Mutex::lock_mut does not called multiple times in the same lock
             unsafe {
                 watchdog.lock_mut(|wd| {
                     wd.set_scratch(0, 0); // Clear panic flag

@@ -8,6 +8,8 @@
 //! updating `memory.x` ensures a rebuild of the application with the
 //! new memory settings.
 
+#![allow(clippy::unwrap_used, reason = "It's OK to panic in build scripts")]
+
 use std::{
     env,
     fs::{self, File},

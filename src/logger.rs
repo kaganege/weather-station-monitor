@@ -35,9 +35,18 @@ async fn logger_task(driver: Driver<'static, USB>) {
             let body = format_args!("[{level}] {}", record.args());
             let body = colored!(body).with_fg(color);
 
+            #[expect(
+                clippy::let_underscore_must_use,
+                reason = "We can't do much if writeln! fails, so we ignore the result"
+            )]
             let _ = writeln!(writer, "{body}");
         });
 
+    #[expect(
+        clippy::multiple_unsafe_ops_per_block,
+        reason = "The safety comment applies to the entire block"
+    )]
+    // SAFETY: this function called once at the start of the program
     unsafe {
         if log::set_logger_racy(&LOGGER).is_ok() {
             log::set_max_level_racy(LOG_LEVEL);

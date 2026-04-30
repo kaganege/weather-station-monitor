@@ -2,8 +2,7 @@ use atoi::FromRadix10;
 use const_default::ConstDefault;
 use num_traits::Zero;
 use uom::si::{
-    angle::degree,
-    f32::{Angle, Pressure, Ratio, ThermodynamicTemperature, Velocity},
+    f32::{Pressure, Ratio, ThermodynamicTemperature, Velocity},
     pressure::{hectopascal, inch_of_water},
     ratio::percent,
     thermodynamic_temperature::degree_fahrenheit,
@@ -29,10 +28,41 @@ pub enum ParseError {
     NumberParsingFailed(#[from] NumberParseError),
 }
 
+#[derive(Debug, Clone, Copy, serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum WindDirection {
+    North,
+    NorthEast,
+    East,
+    SouthEast,
+    South,
+    SouthWest,
+    West,
+    NorthWest,
+}
+
+impl WindDirection {
+    pub const fn from_angle(angle: u16) -> Self {
+        match angle % 360 {
+            337..360 => Self::North,
+            0..23 => Self::North,
+            23..67 => Self::NorthEast,
+            67..113 => Self::East,
+            113..157 => Self::SouthEast,
+            157..203 => Self::South,
+            203..247 => Self::SouthWest,
+            247..293 => Self::West,
+            293..337 => Self::NorthWest,
+            // SAFETY: The angle is guaranteed to be within 0..360 by the modulo operation above
+            _ => unsafe { core::hint::unreachable_unchecked() },
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, Default, ConstDefault)]
 pub struct Data {
     /// Wind direction
-    pub wind_direction: Option<Angle>,
+    pub wind_direction: Option<WindDirection>,
     /// Wind speed over the last 1 minute
     pub wind_speed_1_min: Option<Velocity>,
     /// Max wind speed over the last 5 minutes
@@ -63,9 +93,7 @@ impl TryFrom<RawData> for Data {
         let air_pressure = RawAirPressure::try_from(raw.air_pressure)?;
 
         Ok(Self {
-            wind_direction: parse_field(wind_direction)?
-                .map(|val| val as f32)
-                .map(Angle::new::<degree>),
+            wind_direction: parse_field(wind_direction)?.map(WindDirection::from_angle),
             wind_speed_1_min: parse_field(wind_speed_1_min)?
                 .map(|val| val as f32 * 10.0) // 0.1 mph to mph
                 .map(Velocity::new::<mile_per_hour>),

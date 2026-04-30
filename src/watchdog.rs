@@ -13,9 +13,11 @@ pub static WATCHDOG: OnceLock<CriticalSectionMutex<Watchdog>> = OnceLock::new();
 pub fn init(peripherals: WatchdogPeripherals<'static>, spawner: &embassy_executor::SendSpawner) {
     let watchdog = Watchdog::new(peripherals.WATCHDOG);
     if WATCHDOG.init(CriticalSectionMutex::new(watchdog)).is_err() {
-        unsafe {
-            core::hint::unreachable_unchecked();
-        }
+        core::hint::cold_path();
+
+        warn!("watchdog::init function called multiple times");
+
+        return;
     }
 
     spawner.spawn(feed_task().unwrap());
@@ -26,10 +28,14 @@ async fn feed_task() {
     let mut timer = Ticker::every(Duration::from_secs(2));
 
     let feed_interval = Duration::from_secs(5);
+
+    // SAFETY: Mutex::lock_mut does not called multiple times in the same lock
     unsafe { WATCHDOG.get().await.lock_mut(|wd| wd.start(feed_interval)) };
 
     loop {
         timer.next().await;
+
+        // SAFETY: Mutex::lock_mut does not called multiple times in the same lock
         unsafe { WATCHDOG.get().await.lock_mut(|wd| wd.feed(feed_interval)) };
     }
 }

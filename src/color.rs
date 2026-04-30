@@ -1,3 +1,5 @@
+#![allow(clippy::allow_attributes, clippy::allow_attributes_without_reason)]
+
 use core::fmt;
 
 #[macro_export]

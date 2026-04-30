@@ -1,7 +1,7 @@
 use core::mem::{align_of, size_of};
 
 macro_rules! declare_field {
-    ($tag:literal $data:ty [$size:literal] => $field_name:ident $(($doc:literal))?) => {
+    ($tag:literal [$data:ty; $size:literal] => $field_name:ident $(($doc:literal))?) => {
         $(#[doc = $doc])?
         #[repr(C)]
         #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -82,26 +82,18 @@ impl<const N: usize> RawField<N> {
     }
 }
 
-declare_field!(b'c' u16[3] => RawWindDirection ("air direction, degree"));
-declare_field!(b's' u16[3] => RawWindSpeed1Min ("air speed(1 minute), 0.1 miles per hour"));
-declare_field!(b'g' u16[3] => RawWindSpeed5Min ("air speed(5 minutes), 0.1 miles per hour"));
-declare_field!(b't' u16[3] => RawTemperature   ("temperature, Fahrenheit"));
-declare_field!(b'r' u16[3] => RawRainfall1Hour ("rainfall(1 hour), 0.01 inches"));
-declare_field!(b'p' u16[3] => RawRainfall1Day  ("rainfall(24 hours), 0.01 inches"));
-declare_field!(b'h'  u8[2] => RawHumidity      ("humidity, %"));
-declare_field!(b'b' u32[5] => RawAirPressure   ("atmosphere, 0.1 hpa"));
+declare_field!(b'c' [u16; 3] => RawWindDirection ("air direction, degree"));
+declare_field!(b's' [u16; 3] => RawWindSpeed1Min ("air speed(1 minute), 0.1 miles per hour"));
+declare_field!(b'g' [u16; 3] => RawWindSpeed5Min ("air speed(5 minutes), 0.1 miles per hour"));
+declare_field!(b't' [u16; 3] => RawTemperature   ("temperature, Fahrenheit"));
+declare_field!(b'r' [u16; 3] => RawRainfall1Hour ("rainfall(1 hour), 0.01 inches"));
+declare_field!(b'p' [u16; 3] => RawRainfall1Day  ("rainfall(24 hours), 0.01 inches"));
+declare_field!(b'h' [u8;  2] => RawHumidity      ("humidity, %"));
+declare_field!(b'b' [u32; 5] => RawAirPressure   ("atmosphere, 0.1 hpa"));
 
-#[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) struct RawBreak {
-    tag: [u8; 4],
-}
+pub const RAW_DATA_END_BYTE: u8 = b'*';
 
-impl RawBreak {
-    pub const SIZE: usize = 4;
-    pub const TAG: [u8; Self::SIZE] = *br"\r\n";
-}
-
+// Example data: c000s000g000t086r000p000h53b10020
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) struct RawData {
@@ -121,17 +113,18 @@ pub(super) struct RawData {
     pub humidity: RawField<{ RawHumidity::SIZE }>,
     /// b10020: atmosphere, 0.1 hpa
     pub air_pressure: RawField<{ RawAirPressure::SIZE }>,
-    /// CR/LF
-    pub r#break: [u8; RawBreak::SIZE],
 }
 
 const _: () = {
-    assert!(align_of::<RawData>() == 1);
-    assert!(size_of::<RawData>() == 37);
+    assert!(align_of::<RawData>() == align_of::<u8>());
+    assert!(size_of::<RawData>() == 33);
 };
 
 impl RawData {
-    pub const fn from_slice(bytes: &[u8; size_of::<Self>()]) -> &Self {
-        unsafe { &*(bytes.as_ptr() as *const Self) }
+    pub const fn from_array(bytes: [u8; size_of::<Self>()]) -> Self {
+        // SAFETY: The byte slice is guaranteed to be the correct size for RawData,
+        // and RawData is repr(C) with only u8 arrays and u8 fields, so transmuting
+        // from [u8; size_of::<Self>()] to Self is safe.
+        unsafe { core::mem::transmute(bytes) }
     }
 }

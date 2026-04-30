@@ -1,92 +1,122 @@
 const ENDPOINT = "{{ endpoint }}";
 
+/**
+ * @param {number} value
+ * @param {number} decimals
+ */
+const round = (value, decimals) => {
+    const factor = 10 ** decimals;
+    return Math.round(value * factor) / factor;
+};
+
+const el = {
+    temp: document.querySelector(".js-temp"),
+    humidity: document.querySelector(".js-humidity"),
+    windSpeed: document.querySelector(".js-wind-speed"),
+    pressure: document.querySelector(".js-pressure"),
+
+    tempDetail: document.querySelector(".js-temp-detail"),
+    humidityDetail: document.querySelector(".js-humidity-detail"),
+    pressureDetail: document.querySelector(".js-pressure-detail"),
+    windSpeedDetail: document.querySelector(".js-wind-speed-detail"),
+
+    maxWind: document.querySelector(".js-max-wind"),
+    windDir: document.querySelector(".js-wind-dir"),
+    rain1h: document.querySelector(".js-rain-1h"),
+    rain1d: document.querySelector(".js-rain-1d"),
+};
+
+const windMap = {
+    north: "Kuzey",
+    "north-east": "Kuzey Doğu",
+    "north-west": "Kuzey Batı",
+    east: "Doğu",
+    west: "Batı",
+    south: "Güney",
+    "south-west": "Güney Batı",
+    "south-east": "Güney Doğu",
+};
+
+/**
+ * @param {Element | null} node
+ * @param {any} value
+ */
+const setText = (node, value) => {
+    if (!node) return;
+    const str = String(value);
+    if (node.textContent !== str) {
+        node.textContent = str;
+    }
+};
+
 async function reloadData() {
     try {
-        const response = await fetch(ENDPOINT);
-        const newData = await response.json();
-        updatePage(newData);
-    } catch (error) {
-        console.error("Failed to reload data:", error);
+        const res = await fetch(ENDPOINT);
+        const d = await res.json();
+        update(d);
+    } catch (err) {
+        console.error("Failed to reload data:", err);
     }
 }
 
 /**
- * @param {Data} newData
+ * @param {Data} d
  */
-function updatePage(newData) {
-    const tempCards = document.querySelectorAll(".stat-card");
-    const dataItems = document.querySelectorAll(".data-item");
-
-    if (newData.temperature !== null) {
-        tempCards[0].innerHTML = `
-            <div class="stat-label">🌡️ Sıcaklık</div>
-            <div class="stat-value">${newData.temperature.toFixed(1)}<span class="stat-unit">°C</span></div>
-        `;
-        dataItems[0].innerHTML = `
-            <div class="data-label">🌡️ Sıcaklık</div>
-            <div class="data-value">${newData.temperature.toFixed(2)} °C</div>
-        `;
+function update(d) {
+    if (d.temperature != null) {
+        setText(el.temp, round(d.temperature, 1));
+        setText(el.tempDetail, `${round(d.temperature, 2)} °C`);
+    } else {
+        setText(el.temp, "-");
+        setText(el.tempDetail, "Veri yok");
     }
 
-    if (newData.humidity !== null) {
-        tempCards[1].innerHTML = `
-            <div class="stat-label">💧 Nem Oranı</div>
-            <div class="stat-value"><span class="stat-unit">%</span>${newData.humidity}</div>
-        `;
-        dataItems[1].innerHTML = `
-            <div class="data-label">💧 Nem Oranı</div>
-            <div class="data-value">%${newData.humidity}</div>
-        `;
+    if (d.humidity != null) {
+        setText(el.humidity, d.humidity);
+        setText(el.humidityDetail, `%${d.humidity}`);
+    } else {
+        setText(el.humidity, "-");
+        setText(el.humidityDetail, "Veri yok");
     }
 
-    if (newData.windSpeed1Min !== null) {
-        tempCards[2].innerHTML = `
-            <div class="stat-label">💨 Rüzgar Hızı</div>
-            <div class="stat-value">${newData.windSpeed1Min.toFixed(1)}<span class="stat-unit">m/s</span></div>
-        `;
-        dataItems[3].innerHTML = `
-            <div class="data-label">💨 Rüzgar Hızı (1 dakika)</div>
-            <div class="data-value">${newData.windSpeed1Min.toFixed(2)} m/s</div>
-        `;
+    if (d.windSpeed1Min != null) {
+        setText(el.windSpeed, round(d.windSpeed1Min, 1));
+        setText(el.windSpeedDetail, `${round(d.windSpeed1Min, 2)} m/s`);
+    } else {
+        setText(el.windSpeed, "-");
+        setText(el.windSpeedDetail, "Veri yok");
     }
 
-    if (newData.airPressure !== null) {
-        tempCards[3].innerHTML = `
-            <div class="stat-label">📈 Basınç</div>
-            <div class="stat-value">${newData.airPressure.toFixed(0)}<span class="stat-unit">hPa</span></div>
-        `;
-        dataItems[2].innerHTML = `
-            <div class="data-label">📈 Hava Basıncı</div>
-            <div class="data-value">${newData.airPressure.toFixed(1)} hPa</div>
-        `;
+    if (d.airPressure != null) {
+        setText(el.pressure, Math.round(d.airPressure));
+        setText(el.pressureDetail, `${round(d.airPressure, 1)} hPa`);
+    } else {
+        setText(el.pressure, "-");
+        setText(el.pressureDetail, "Veri yok");
     }
 
-    if (newData.maxWindSpeed5Min !== null) {
-        dataItems[4].innerHTML = `
-            <div class="data-label">🌪️ Max Rüzgar Hızı (5 dakika)</div>
-            <div class="data-value">${newData.maxWindSpeed5Min.toFixed(2)} m/s</div>
-        `;
+    if (d.maxWindSpeed5Min != null) {
+        setText(el.maxWind, `${round(d.maxWindSpeed5Min, 2)} m/s`);
+    } else {
+        setText(el.maxWind, "Veri yok");
     }
 
-    if (newData.windDirection !== null) {
-        dataItems[5].innerHTML = `
-            <div class="data-label">🧭 Rüzgar Yönü</div>
-            <div class="data-value">${newData.windDirection}°</div>
-        `;
+    if (d.windDirection != null) {
+        setText(el.windDir, windMap[d.windDirection]);
+    } else {
+        setText(el.windDir, "Veri yok");
     }
 
-    if (newData.rainfall1Hour !== null) {
-        dataItems[6].innerHTML = `
-            <div class="data-label">🌧️ Yağmur (1 saat)</div>
-            <div class="data-value">${newData.rainfall1Hour.toFixed(2)} mm</div>
-        `;
+    if (d.rainfall1Hour != null) {
+        setText(el.rain1h, `${round(d.rainfall1Hour, 2)} mm`);
+    } else {
+        setText(el.rain1h, "Veri yok");
     }
 
-    if (newData.rainfall1Day !== null) {
-        dataItems[7].innerHTML = `
-            <div class="data-label">🌧️ Yağmur (1 gün)</div>
-            <div class="data-value">${newData.rainfall1Day.toFixed(2)} mm</div>
-        `;
+    if (d.rainfall1Day != null) {
+        setText(el.rain1d, `${round(d.rainfall1Day, 2)} mm`);
+    } else {
+        setText(el.rain1d, "Veri yok");
     }
 }
 

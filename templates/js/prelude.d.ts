@@ -1,6 +1,9 @@
 // Refer to src/network/web/handler/routes/api.rs
+
+declare type WindDirection = "north" | "north-east" | "east" | "south" | "south-east" | "south-west" | "west" | "north-west";
+
 declare interface Data {
-    windDirection: number | null;
+    windDirection: WindDirection | null;
     windSpeed1Min: number | null;
     maxWindSpeed5Min: number | null;
     temperature: number | null;

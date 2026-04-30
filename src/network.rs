@@ -115,10 +115,15 @@ async fn search_for_unused_channel(control: &mut Control<'_>) -> u8 {
 
     while let Some(bss_info) = scanner.next().await {
         let channel = bss_info.ctl_ch;
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "bss_info.ssid_len is checked to be <= 32"
+        )]
+        let ssid = str::from_utf8(&bss_info.ssid[..usize::min(bss_info.ssid_len as usize, 32)])
+            .unwrap_or("<unknown>");
 
-        info!(
+        debug!(
             "Found a bss: ssid={ssid}, rssi={rssi}, channel spec={chanspec}, channel={channel}",
-            ssid = str::from_utf8(&bss_info.ssid[..bss_info.ssid_len as usize]).unwrap(),
             rssi = bss_info.rssi,
             chanspec = bss_info.chanspec,
         );

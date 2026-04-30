@@ -7,6 +7,7 @@ use crate::watchdog::WATCHDOG;
 #[panic_handler]
 fn panic_handler(info: &PanicInfo) -> ! {
     if let Some(watchdog) = WATCHDOG.try_get() {
+        // SAFETY: Mutex::lock_mut does not called multiple times in the same lock
         unsafe {
             watchdog.lock_mut(|wd| {
                 wd.stop();

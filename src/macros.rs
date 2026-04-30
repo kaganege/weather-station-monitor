@@ -10,7 +10,7 @@ macro_rules! define_peripherals {
             $(,)?
         }
     } => {
-        #[allow(non_snake_case, missing_docs)]
+        #[allow(clippy::allow_attributes, non_snake_case, reason = "The peripheral names are title case")]
         $(#[$meta])*
         pub struct $name<'a> {
             $(
