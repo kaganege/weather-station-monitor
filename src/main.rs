@@ -10,6 +10,7 @@ use embassy_rp::{
     interrupt::{self, InterruptExt, Priority},
     peripherals::{DMA_CH0, DMA_CH1, DMA_CH2, PIO0, UART0, USB},
     pio, uart, usb,
+    watchdog::ResetReason,
 };
 
 use crate::{
@@ -65,30 +66,13 @@ async fn main(spawner: Spawner) {
     {
         let watchdog = watchdog::WATCHDOG.get().await;
 
-        if let Some(panic_occured) = unsafe {
-            // SAFETY: Mutex::lock_mut does not called multiple times in the same lock
-            watchdog.lock_mut(|wd| wd.reset_reason().map(|_| wd.get_scratch(0) == 1))
-        } {
-            if panic_occured {
-                warn!("The device previously shut down due to a panic");
-            } else {
-                warn!(
-                    "The device previously shut down due to a deadlock (ignore if this is the first boot)"
-                );
-            }
-
-            // SAFETY: Mutex::lock_mut does not called multiple times in the same lock
-            unsafe {
-                watchdog.lock_mut(|wd| {
-                    wd.set_scratch(0, 0); // Clear panic flag
-
-                    // Clear the watchdog reset reason
-                    embassy_rp::pac::WATCHDOG.reason().modify(|r| {
-                        r.set_force(false);
-                        r.set_timer(false);
-                    })
-                });
-            }
+        if let Some(panic) = panic_persist::get_panic_message_utf8() {
+            warn!("The device previously shut down due to a panic");
+            warn!("Panic message:\n{panic}");
+        } else if watchdog.lock(|wd| wd.reset_reason()) == Some(ResetReason::TimedOut) {
+            warn!(
+                "The device previously shut down due to a deadlock (ignore if this is the first boot)"
+            );
         }
     }
 

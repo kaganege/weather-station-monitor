@@ -45,7 +45,10 @@ pub fn read_data<'a>()
 
 pub fn random_data() -> Data {
     Data {
-        #[expect(clippy::cast_sign_loss, reason = "random_f32() is always positive")]
+        #[expect(
+            clippy::cast_sign_loss,
+            reason = "`random_f32` always returns a positive number"
+        )]
         wind_direction: random_option(|| match (random_f32() * 7.0).round() as u8 {
             0 => data::WindDirection::North,
             1 => data::WindDirection::NorthEast,

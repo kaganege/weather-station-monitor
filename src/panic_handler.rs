@@ -1,6 +1,6 @@
 use core::panic::PanicInfo;
 
-use embassy_time::Duration;
+use panic_persist::report_panic_info;
 
 use crate::watchdog::WATCHDOG;
 
@@ -9,32 +9,25 @@ fn panic_handler(info: &PanicInfo) -> ! {
     if let Some(watchdog) = WATCHDOG.try_get() {
         // SAFETY: Mutex::lock_mut does not called multiple times in the same lock
         unsafe {
-            watchdog.lock_mut(|wd| {
-                wd.stop();
-                // Set scratch register to 1 to indicate panic occurred
-                wd.set_scratch(0, 1);
-            });
+            watchdog.lock_mut(|wd| wd.stop());
         }
     }
 
-    error!("{info}");
+    cortex_m::interrupt::disable();
 
-    embassy_time::block_for(Duration::from_secs(1));
+    report_panic_info(info);
 
     cfg_select! {
         debug_assertions => {
             embassy_rp::rom_data::reset_to_usb_boot(0, 0);
+
+            loop {
+                cortex_m::asm::nop();
+            }
         }
 
         _ => {
-            if let Some(watchdog) = WATCHDOG.try_get() {
-                unsafe {
-                    watchdog.lock_mut(|wd| wd.trigger_reset());
-                }
-
-            }
+            cortex_m::peripheral::SCB::sys_reset();
         }
     }
-
-    loop {}
 }

@@ -67,6 +67,10 @@ futures = { version = "0.3.32", default-features = false, features = [
 heapless = "0.9.3"
 log = "0.4.29"
 num-traits = { version = "0.2.19", default-features = false }
+panic-persist = { version = "0.3.0", features = [
+    "custom-panic-handler",
+    "utf8",
+] }
 picoserve = { version = "0.18.0", features = ["json"] }
 portable-atomic = { version = "1.13.1", default-features = false, features = [
     "critical-section",

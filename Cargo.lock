@@ -2167,6 +2167,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "panic-persist"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32bb382689ecd2c4d2d4df9fd56700ba8d43b7b31cca11018cc0e6f8aef39fd5"
+dependencies = [
+ "cortex-m",
+]
+
+[[package]]
 name = "parcel_selectors"
 version = "0.28.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3471,6 +3480,7 @@ dependencies = [
  "log",
  "minify-html",
  "num-traits",
+ "panic-persist",
  "picoserve",
  "portable-atomic",
  "serde",
