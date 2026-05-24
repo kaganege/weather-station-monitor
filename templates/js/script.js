@@ -56,7 +56,10 @@ const setText = (node, value, available) => {
 
 async function reloadData() {
     try {
-        const res = await fetch(ENDPOINT);
+        let endpoint = ENDPOINT;
+        endpoint.search = window.location.search;
+
+        const res = await fetch(endpoint);
         const d = await res.json();
         update(d);
     } catch (err) {

@@ -77,6 +77,19 @@ where
             write!(conn, "{}", DemoTemplate { data }).await?;
         }
 
+        "/demo?all_available" => {
+            conn.initiate_response(
+                200,
+                Some("OK"),
+                &[("Content-Type", "text/html; charset=utf-8")],
+            )
+            .await?;
+
+            let data = station::random_all_available_data();
+
+            write!(conn, "{}", DemoTemplate { data }).await?;
+        }
+
         _ => {
             return Ok(false);
         }

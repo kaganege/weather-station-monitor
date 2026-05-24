@@ -82,6 +82,14 @@ where
             data.write_to(conn).await?;
         }
 
+        "/random-data?all_available" => {
+            conn.initiate_response(200, Some("OK"), &[("Content-Type", "application/json")])
+                .await?;
+
+            let data = Json(SerializedData::from(station::random_all_available_data()));
+            data.write_to(conn).await?;
+        }
+
         _ => {
             return Ok(false);
         }
