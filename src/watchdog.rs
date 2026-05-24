@@ -10,7 +10,7 @@ define_peripherals! {
 
 pub static WATCHDOG: OnceLock<CriticalSectionMutex<Watchdog>> = OnceLock::new();
 
-pub fn init(peripherals: WatchdogPeripherals<'static>, spawner: &embassy_executor::SendSpawner) {
+pub fn init(peripherals: WatchdogPeripherals<'static>, spawner: &embassy_executor::Spawner) {
     let watchdog = Watchdog::new(peripherals.WATCHDOG);
     if WATCHDOG.init(CriticalSectionMutex::new(watchdog)).is_err() {
         core::hint::cold_path();

@@ -80,7 +80,7 @@ async fn logger_task(driver: Driver<'static, USB>) {
     join(device.run(), LOGGER.create_future_from_class(class)).await;
 }
 
-pub fn init(peripherals: LoggerPeripherals<'static>, spawner: &embassy_executor::SendSpawner) {
+pub fn init(peripherals: LoggerPeripherals<'static>, spawner: &embassy_executor::Spawner) {
     let usb_driver = Driver::new(peripherals.USB, Irqs);
 
     spawner.spawn(logger_task(usb_driver).unwrap());
