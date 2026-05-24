@@ -1,4 +1,5 @@
-const ENDPOINT = "{{ endpoint }}";
+/* Expands to the endpoint */
+const ENDPOINT = new URL("{{ endpoint }}");
 
 /**
  * @param {number} value
@@ -40,13 +41,17 @@ const windMap = {
 /**
  * @param {Element | null} node
  * @param {any} value
+ * @param {boolean} available
  */
-const setText = (node, value) => {
+const setText = (node, value, available) => {
     if (!node) return;
     const str = String(value);
     if (node.textContent !== str) {
         node.textContent = str;
     }
+
+    node.classList.toggle("unavailable", !available);
+    node.closest(".stat-value")?.classList.toggle("unavailable", !available);
 };
 
 async function reloadData() {
@@ -64,59 +69,59 @@ async function reloadData() {
  */
 function update(d) {
     if (d.temperature != null) {
-        setText(el.temp, round(d.temperature, 1));
-        setText(el.tempDetail, `${round(d.temperature, 2)} °C`);
+        setText(el.temp, round(d.temperature, 1), true);
+        setText(el.tempDetail, `${round(d.temperature, 2)} °C`, true);
     } else {
-        setText(el.temp, "-");
-        setText(el.tempDetail, "Veri yok");
+        setText(el.temp, "-", false);
+        setText(el.tempDetail, "Veri yok", false);
     }
 
     if (d.humidity != null) {
-        setText(el.humidity, d.humidity);
-        setText(el.humidityDetail, `%${d.humidity}`);
+        setText(el.humidity, d.humidity, true);
+        setText(el.humidityDetail, `%${d.humidity}`, true);
     } else {
-        setText(el.humidity, "-");
-        setText(el.humidityDetail, "Veri yok");
+        setText(el.humidity, "-", false);
+        setText(el.humidityDetail, "Veri yok", false);
     }
 
     if (d.windSpeed1Min != null) {
-        setText(el.windSpeed, round(d.windSpeed1Min, 1));
-        setText(el.windSpeedDetail, `${round(d.windSpeed1Min, 2)} m/s`);
+        setText(el.windSpeed, round(d.windSpeed1Min, 1), true);
+        setText(el.windSpeedDetail, `${round(d.windSpeed1Min, 2)} m/s`, true);
     } else {
-        setText(el.windSpeed, "-");
-        setText(el.windSpeedDetail, "Veri yok");
+        setText(el.windSpeed, "-", false);
+        setText(el.windSpeedDetail, "Veri yok", false);
     }
 
     if (d.airPressure != null) {
-        setText(el.pressure, Math.round(d.airPressure));
-        setText(el.pressureDetail, `${round(d.airPressure, 1)} hPa`);
+        setText(el.pressure, Math.round(d.airPressure), true);
+        setText(el.pressureDetail, `${round(d.airPressure, 1)} hPa`, true);
     } else {
-        setText(el.pressure, "-");
-        setText(el.pressureDetail, "Veri yok");
+        setText(el.pressure, "-", false);
+        setText(el.pressureDetail, "Veri yok", false);
     }
 
     if (d.maxWindSpeed5Min != null) {
-        setText(el.maxWind, `${round(d.maxWindSpeed5Min, 2)} m/s`);
+        setText(el.maxWind, `${round(d.maxWindSpeed5Min, 2)} m/s`, true);
     } else {
-        setText(el.maxWind, "Veri yok");
+        setText(el.maxWind, "Veri yok", false);
     }
 
     if (d.windDirection != null) {
-        setText(el.windDir, windMap[d.windDirection]);
+        setText(el.windDir, windMap[d.windDirection], true);
     } else {
-        setText(el.windDir, "Veri yok");
+        setText(el.windDir, "Veri yok", false);
     }
 
     if (d.rainfall1Hour != null) {
-        setText(el.rain1h, `${round(d.rainfall1Hour, 2)} mm`);
+        setText(el.rain1h, `${round(d.rainfall1Hour, 2)} mm`, true);
     } else {
-        setText(el.rain1h, "Veri yok");
+        setText(el.rain1h, "Veri yok", false);
     }
 
     if (d.rainfall1Day != null) {
-        setText(el.rain1d, `${round(d.rainfall1Day, 2)} mm`);
+        setText(el.rain1d, `${round(d.rainfall1Day, 2)} mm`, true);
     } else {
-        setText(el.rain1d, "Veri yok");
+        setText(el.rain1d, "Veri yok", false);
     }
 }
 

@@ -47,6 +47,13 @@
         font-size: 36px;
         font-weight: bold;
     }
+    .stat-value.unavailable {
+        color: #ccc;
+        font-size: 24px;
+    }
+    .stat-value.unavailable .stat-unit {
+        display: none;
+    }
     .stat-unit {
         color: #999;
         font-size: 16px;

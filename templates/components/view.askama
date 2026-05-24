@@ -5,50 +5,58 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">🌡️ Sıcaklık</div>
-                {% if let Some(temp) = data.temperature %}
-                <div class="stat-value">
-                    <span class="value js-temp">{{ self::round(temp.get::<degree_celsius>(), 1) }}</span>
+                <div class="stat-value{% if data.temperature.is_none() %} unavailable{% endif %}">
+                    <span class="value js-temp">
+                        {% if let Some(temp) = data.temperature %}
+                        {{ self::round(temp.get::<degree_celsius>(), 1) }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </span>
                     <span class="stat-unit">°C</span>
                 </div>
-                {% else %}
-                <div class="stat-unavailable js-temp">-</div>
-                {% endif %}
             </div>
 
             <div class="stat-card">
                 <div class="stat-label">💧 Nem Oranı</div>
-                {% if let Some(humidity) = data.humidity %}
-                <div class="stat-value">
+                <div class="stat-value{% if data.humidity.is_none() %} unavailable{% endif %}">
                     <span class="stat-unit">%</span>
-                    <span class="value js-humidity">{{ humidity.get::<percent>() }}</span>
+                    <span class="value js-humidity">
+                        {% if let Some(humidity) = data.humidity %}
+                        {{ humidity.get::<percent>() }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </span>
                 </div>
-                {% else %}
-                <div class="stat-unavailable js-humidity">-</div>
-                {% endif %}
             </div>
 
             <div class="stat-card">
                 <div class="stat-label">💨 Rüzgar Hızı</div>
-                {% if let Some(speed) = data.wind_speed_1_min %}
-                <div class="stat-value">
-                    <span class="value js-wind-speed">{{ self::round(speed.get::<meter_per_second>(), 1) }}</span>
+                <div class="stat-value{% if data.wind_speed_1_min.is_none() %} unavailable{% endif %}">
+                    <span class="value js-wind-speed">
+                        {% if let Some(speed) = data.wind_speed_1_min %}
+                        {{ self::round(speed.get::<meter_per_second>(), 1) }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </span>
                     <span class="stat-unit">m/s</span>
                 </div>
-                {% else %}
-                <div class="stat-unavailable js-wind-speed">-</div>
-                {% endif %}
             </div>
 
             <div class="stat-card">
                 <div class="stat-label">📈 Basınç</div>
-                {% if let Some(pressure) = data.air_pressure %}
-                <div class="stat-value">
-                    <span class="value js-pressure">{{ self::round(pressure.get::<hectopascal>(), 0) }}</span>
+                <div class="stat-value{% if data.air_pressure.is_none() %} unavailable{% endif %}">
+                    <span class="value js-pressure">
+                        {% if let Some(pressure) = data.air_pressure %}
+                        {{ self::round(pressure.get::<hectopascal>(), 0) }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </span>
                     <span class="stat-unit">hPa</span>
                 </div>
-                {% else %}
-                <div class="stat-unavailable js-pressure">-</div>
-                {% endif %}
             </div>
         </div>
 
