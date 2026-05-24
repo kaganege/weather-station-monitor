@@ -3480,6 +3480,7 @@ dependencies = [
  "log",
  "minify-html",
  "num-traits",
+ "owo-colors",
  "panic-persist",
  "picoserve",
  "portable-atomic",

@@ -20,8 +20,6 @@ use crate::{
 
 #[macro_use]
 mod macros;
-#[macro_use]
-mod color;
 mod logger;
 mod network;
 mod panic_handler;

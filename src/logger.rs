@@ -8,8 +8,9 @@ use embassy_usb::{
 use embassy_usb_logger::{DummyHandler, MAX_PACKET_SIZE, UsbLogger};
 use futures::future::join;
 use log::{Level, LevelFilter};
+use owo_colors::{AnsiColors, OwoColorize};
 
-use crate::{Irqs, color::Color};
+use crate::Irqs;
 
 const LOG_LEVEL: LevelFilter = LevelFilter::Info;
 const LOG_BUFFER_SIZE: usize = 1024;
@@ -26,14 +27,14 @@ async fn logger_task(driver: Driver<'static, USB>) {
         UsbLogger::with_custom_style(|record, writer| {
             let level = record.level();
             let color = match level {
-                Level::Error => Color::BrightRed,
-                Level::Warn => Color::BrightYellow,
-                Level::Info => Color::BrightGreen,
-                Level::Debug => Color::BrightBlue,
-                Level::Trace => Color::BrightMagenta,
+                Level::Error => AnsiColors::BrightRed,
+                Level::Warn => AnsiColors::BrightYellow,
+                Level::Info => AnsiColors::BrightGreen,
+                Level::Debug => AnsiColors::BrightBlue,
+                Level::Trace => AnsiColors::BrightMagenta,
             };
             let body = format_args!("[{level}] {}", record.args());
-            let body = colored!(body).with_fg(color);
+            let body = body.color(color);
 
             #[expect(
                 clippy::let_underscore_must_use,

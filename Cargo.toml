@@ -3,10 +3,6 @@ name = "weather-station-monitor"
 version = "1.0.0"
 edition = "2024"
 
-[features]
-default = ["colorize"]
-colorize = []
-
 [dependencies]
 askama = { version = "0.16.0", default-features = false, features = [
     "derive",
@@ -67,6 +63,7 @@ futures = { version = "0.3.32", default-features = false, features = [
 heapless = "0.9.3"
 log = "0.4.29"
 num-traits = { version = "0.2.19", default-features = false }
+owo-colors = "4.3.0"
 panic-persist = { version = "0.3.0", features = [
     "custom-panic-handler",
     "utf8",
