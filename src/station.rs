@@ -1,11 +1,12 @@
 use const_default::ConstDefault;
-use embassy_rp::uart::UartRx;
+use embassy_rp::uart::BufferedUartRx;
 use embassy_sync::{
     blocking_mutex::raw::CriticalSectionRawMutex,
     rwlock::{RwLock, RwLockReadGuard},
 };
 use embassy_time::Timer;
 use num_traits::float::FloatCore;
+use static_cell::StaticCell;
 use uom::si::{
     f32::{Pressure, Ratio, ThermodynamicTemperature, Velocity},
     pressure::{hectopascal, millimeter_of_water},
@@ -31,7 +32,6 @@ mod raw;
 define_peripherals! {
     StationPeripherals {
         UART0,
-        DMA_CH1,
         PIN_1, // RX
     }
 }
@@ -82,11 +82,13 @@ pub fn random_data() -> Data {
 }
 
 pub fn init(peripherals: StationPeripherals<'static>, spawner: &embassy_executor::Spawner) {
-    let rx = UartRx::new(
+    static BUF: StaticCell<[u8; size_of::<raw::RawData>()]> = StaticCell::new();
+    let rx = BufferedUartRx::new(
         peripherals.UART0,
-        peripherals.PIN_1,
         Irqs,
-        peripherals.DMA_CH1,
+        peripherals.PIN_1,
+        // SAFETY: This is safe because the UART will fill the buffer
+        unsafe { BUF.uninit().assume_init_mut() },
         StationController::uart_config(),
     );
     let controller = StationController::new(rx);
@@ -95,7 +97,7 @@ pub fn init(peripherals: StationPeripherals<'static>, spawner: &embassy_executor
 }
 
 #[embassy_executor::task]
-async fn read_task(mut controller: StationController<'static>) -> ! {
+async fn read_task(mut controller: StationController) -> ! {
     loop {
         let Ok(data) = controller.read().await.inspect_err(|e| error!("{e}")) else {
             Timer::after_millis(200).await;

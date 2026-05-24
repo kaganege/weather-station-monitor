@@ -1,5 +1,6 @@
-use embassy_rp::uart::{self, Async, Config, UartRx};
+use embassy_rp::uart::{self, BufferedUartRx, Config};
 use embassy_time::Timer;
+use embedded_io_async::{Read, ReadExactError};
 
 use crate::station::raw::RAW_DATA_END_BYTE;
 
@@ -19,11 +20,11 @@ pub enum Error {
     Parse(#[from] ParseError),
 }
 
-pub struct StationController<'a> {
-    rx: UartRx<'a, Async>,
+pub struct StationController {
+    rx: BufferedUartRx,
 }
 
-impl<'a> StationController<'a> {
+impl StationController {
     #[inline]
     pub fn uart_config() -> Config {
         let mut config = Config::default();
@@ -32,13 +33,13 @@ impl<'a> StationController<'a> {
     }
 
     #[inline]
-    pub const fn new(rx: UartRx<'a, Async>) -> Self {
+    pub const fn new(rx: BufferedUartRx) -> Self {
         Self { rx }
     }
 
     pub async fn read(&mut self) -> Result<Data, Error> {
         let data = self.read_raw_data().await?;
-        let data: Data = data.try_into()?;
+        let data = data.try_into()?;
 
         Ok(data)
     }
@@ -46,19 +47,21 @@ impl<'a> StationController<'a> {
     async fn read_raw_data(&mut self) -> Result<RawData, Error> {
         let mut buf = [0; size_of::<RawData>()];
 
-        loop {
+        'main: loop {
             self.wait_for_first_byte(&mut buf[0]).await?;
 
             loop {
-                match self.rx.read(&mut buf[1..]).await {
-                    Err(uart::Error::Overrun) => {
+                match self.rx.read_exact(&mut buf[1..]).await {
+                    Err(ReadExactError::Other(uart::Error::Overrun)) => {
                         debug!("Uart overrun while reading station data");
                     }
-                    Err(uart::Error::Break) => {
+                    Err(ReadExactError::Other(uart::Error::Break)) => {
                         Timer::after_millis(200).await;
                         continue;
                     }
-                    result => result?,
+                    Err(ReadExactError::UnexpectedEof) => continue 'main,
+                    Err(ReadExactError::Other(e)) => return Err(Error::Serial(e)),
+                    Ok(()) => (),
                 }
 
                 match self.read_byte().await? {
@@ -146,16 +149,20 @@ impl<'a> StationController<'a> {
         let mut buf = [0];
 
         loop {
-            match self.rx.blocking_read(&mut buf) {
-                Err(uart::Error::Overrun) => debug!("Uart overrun while waiting first byte"),
-                Err(uart::Error::Break) => {
+            let res = self.rx.read_exact(&mut buf).await;
+
+            if res == Err(ReadExactError::Other(uart::Error::Overrun)) {
+                debug!("Uart overrun while waiting first byte");
+            }
+
+            match res {
+                Err(ReadExactError::Other(uart::Error::Break) | ReadExactError::UnexpectedEof) => {
                     Timer::after_millis(100).await;
                     continue;
                 }
-                result => result?,
+                Err(ReadExactError::Other(e)) => return Err(e),
+                Ok(()) => return Ok(buf[0]),
             }
-
-            return Ok(buf[0]);
         }
     }
 }

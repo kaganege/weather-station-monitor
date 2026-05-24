@@ -36,7 +36,7 @@ bind_interrupts! {
         DMA_IRQ_0 => dma::InterruptHandler<DMA_CH0>, dma::InterruptHandler<DMA_CH1>, dma::InterruptHandler<DMA_CH2>;
         USBCTRL_IRQ => usb::InterruptHandler<USB>;
         PIO0_IRQ_0 => pio::InterruptHandler<PIO0>;
-        UART0_IRQ => uart::InterruptHandler<UART0>;
+        UART0_IRQ => uart::BufferedInterruptHandler<UART0>;
     }
 }
 
@@ -86,14 +86,7 @@ async fn main(spawner: Spawner) {
     }
 
     station::init(
-        borrow_peripherals!(
-            peripherals,
-            StationPeripherals {
-                PIN_1,
-                UART0,
-                DMA_CH1
-            }
-        ),
+        borrow_peripherals!(peripherals, StationPeripherals { PIN_1, UART0 }),
         &spawner,
     );
 
