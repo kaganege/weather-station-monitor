@@ -84,6 +84,7 @@ walkdir = "2.5.0"
 [profile.dev]
 panic = "abort"
 opt-level = "s"
+lto = "thin"
 
 [profile.release]
 # Enable generation of debug symbols even on release builds
